@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maid Salary Calculator</title>
+  <style>
+    :root {
+      --main-color: #ff69b4;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #fff;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--main-color);
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+    }
+
+    select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      font-size: 1rem;
+    }
+
+    .result {
+      background-color: #ffe6f1;
+      padding: 15px;
+      border: 2px solid var(--main-color);
+      margin-top: 20px;
+      border-radius: 8px;
+    }
+
+    .highlight {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--main-color);
+    }
+
+    .lang-switch {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 id="title">Maid Salary Calculator</h1>
+
+    <label id="label-year" for="year">Select Year</label>
+    <select id="year">
+      <option value="2025">2025</option>
+      <option value="2026">2026</option>
+      <option value="2027">2027</option>
+    </select>
+
+    <label id="label-month" for="month">Select Month</label>
+    <select id="month">
+      <option value="0">January</option>
+      <option value="1">February</option>
+      <option value="2">March</option>
+      <option value="3">April</option>
+      <option value="4">May</option>
+      <option value="5">June</option>
+      <option value="6">July</option>
+      <option value="7">August</option>
+      <option value="8">September</option>
+      <option value="9">October</option>
+      <option value="10">November</option>
+      <option value="11">December</option>
+    </select>
+
+    <button onclick="calculate()" id="btn-calc">Calculate Salary</button>
+
+    <div class="result" id="result" style="display:none">
+      <p id="daily-rate">Daily Rate: 17,100 CRC (Maid's daily pay)</p>
+      <p id="workdays"></p>
+      <p id="maid-days"></p>
+      <p id="salary"></p>
+      <p id="social"></p>
+    </div>
+
+    <div class="lang-switch">
+      <button onclick="switchLanguage()" id="lang-btn">Español</button>
+    </div>
+  </div>
+
+  <script>
+    const texts = {
+      en: {
+        title: "Maid Salary Calculator",
+        year: "Select Year",
+        month: "Select Month",
+        btn: "Calculate Salary",
+        daily: "Daily Rate: 17,100 CRC (Maid's daily pay)",
+        workdays: d => `Total Weekdays (Mon-Fri): ${d}`,
+        maidDays: d => `Maid's Actual Workdays (excl. Tuesdays): ${d}`,
+        salary: s => `Monthly Salary: <span class='highlight'>${s} CRC</span>`,
+        social: s => `Social Security Contribution (30.04%): ${s} CRC`,
+        langBtn: "Español"
+      },
+      es: {
+        title: "Calculadora de Salario para Empleada Doméstica",
+        year: "Selecciona el Año",
+        month: "Selecciona el Mes",
+        btn: "Calcular Salario",
+        daily: "Salario Diario: 17,100 CRC (Pago por día)",
+        workdays: d => `Días Laborales (Lun-Vie): ${d}`,
+        maidDays: d => `Días Trabajados (sin Martes): ${d}`,
+        salary: s => `Salario Mensual: <span class='highlight'>${s} CRC</span>`,
+        social: s => `Contribución a la Seguridad Social (30.04%): ${s} CRC`,
+        langBtn: "English"
+      }
+    };
+
+    let currentLang = 'en';
+
+    function switchLanguage() {
+      currentLang = currentLang === 'en' ? 'es' : 'en';
+      const t = texts[currentLang];
+      document.getElementById("title").textContent = t.title;
+      document.getElementById("label-year").textContent = t.year;
+      document.getElementById("label-month").textContent = t.month;
+      document.getElementById("btn-calc").textContent = t.btn;
+      document.getElementById("lang-btn").textContent = t.langBtn;
+      if (document.getElementById("result").style.display !== "none") calculate();
+    }
+
+    function calculate() {
+      const year = parseInt(document.getElementById("year").value);
+      const month = parseInt(document.getElementById("month").value);
+
+      // Save to localStorage
+      localStorage.setItem("maid_year", year);
+      localStorage.setItem("maid_month", month);
+
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      let weekdays = 0;
+      let maidDays = 0;
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        const day = new Date(year, month, i).getDay();
+        if (day >= 1 && day <= 5) weekdays++;
+        if ((day >= 1 && day <= 5) && day !== 2) maidDays++;
+      }
+
+      const salary = maidDays * 17100;
+      const social = Math.round(salary * 0.3004);
+
+      const t = texts[currentLang];
+      document.getElementById("result").style.display = "block";
+      document.getElementById("daily-rate").textContent = t.daily;
+      document.getElementById("workdays").textContent = t.workdays(weekdays);
+      document.getElementById("maid-days").textContent = t.maidDays(maidDays);
+      document.getElementById("salary").innerHTML = t.salary(salary.toLocaleString());
+      document.getElementById("social").textContent = t.social(social.toLocaleString());
+    }
+
+    window.onload = () => {
+      const savedYear = localStorage.getItem("maid_year");
+      const savedMonth = localStorage.getItem("maid_month");
+      if (savedYear) document.getElementById("year").value = savedYear;
+      if (savedMonth) document.getElementById("month").value = savedMonth;
+    };
+  </script>
+</body>
+</html>
